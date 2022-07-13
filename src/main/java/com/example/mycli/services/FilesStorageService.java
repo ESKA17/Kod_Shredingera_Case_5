@@ -13,4 +13,6 @@ public interface FilesStorageService {
     Resource load(Long id);
     void deleteAll();
     Stream<Path> loadAll();
+
+    Resource loadUser(HttpServletRequest httpServletRequest);
 }

@@ -56,6 +56,7 @@ public class AuthController {
     public ResponseEntity<List<UserEntity>> users() {
         return ResponseEntity.ok(userService.findAllUsers());
     }
+
     @PostMapping("/logout")
     public ResponseEntity<String> logout() {
         log.info("logout");
@@ -63,11 +64,12 @@ public class AuthController {
     }
 
     @PostMapping("/process_register")
-    public ResponseEntity<String> processRegister(@RequestBody ProcessRegister processRegister,
+    public ResponseEntity<String> processRegister(@RequestBody @Valid ProcessRegister processRegister,
                                                   HttpServletRequest request)
             throws UnsupportedEncodingException, MessagingException {
         log.info(processRegister.getEmail());
-        accountRegistrationService.twoStepVerificationEmail(processRegister.getEmail(), getSiteURL(request));
+        accountRegistrationService.twoStepVerificationEmail(processRegister.getEmail().toLowerCase(),
+                getSiteURL(request));
         return ResponseEntity.ok("Registration verification email was sent");
     }
 
@@ -95,6 +97,7 @@ public class AuthController {
         String siteURL = request.getRequestURL().toString();
         return siteURL.replace(request.getServletPath(), "");
     }
+
 
 }
 

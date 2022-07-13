@@ -3,15 +3,13 @@ package com.example.mycli.services;
 import com.example.mycli.entity.AuthData;
 import com.example.mycli.entity.RoleEntity;
 import com.example.mycli.entity.UserEntity;
+import com.example.mycli.exceptions.AccountBadRequest;
 import com.example.mycli.exceptions.AccountNotFound;
 import com.example.mycli.exceptions.AuthenticationFailed;
 import com.example.mycli.exceptions.PasswordFailed;
-import com.example.mycli.model.FilterSearchRequest;
-import com.example.mycli.model.SubjectType;
-import com.example.mycli.repository.AuthDataRepo;
-import com.example.mycli.repository.RoleEntityRepo;
-import com.example.mycli.repository.UserEntityRepo;
-import com.example.mycli.repository.UserInfoRepo;
+import com.example.mycli.model.*;
+import com.example.mycli.repository.*;
+import com.example.mycli.utils.Utils;
 import com.example.mycli.web.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,32 +31,22 @@ public class UserServiceImpl implements UserService{
     private final UserInfoRepo userInfoRepo;
     private final AuthDataRepo authDataRepo;
     private final PasswordEncoder passwordEncoder;
+    private final RankingRepo rankingRepo;
     private final JwtProvider jwtProvider;
 
 
-    @Override
-    public void initRoles() {
-        log.info("roles initialization ...");
-        if (roleEntityRepo.count() == 0) {
-            RoleEntity roleAdmin = new RoleEntity(0L, "ROLE_ADMIN");
-            RoleEntity roleMentor = new RoleEntity(1L, "ROLE_MENTOR");
-            RoleEntity roleMentee = new RoleEntity(2L, "ROLE_MENTEE");
-            roleEntityRepo.save(roleAdmin);
-            roleEntityRepo.save(roleMentor);
-            roleEntityRepo.save(roleMentee);
-            log.info("roles initialization was successful");
-        } else {
-            log.info("roles have been already added");
-        }
-
-    }
     @Transactional
     @Override
     public UserEntity saveUser(UserEntity user) {
         log.info("saving user ...");
+        if (user.getRanking() != null) {
+            rankingRepo.save(user.getRanking());
+        }
         if (user.getUserInformation() != null) {
+            log.info("user info is not null");
             userInfoRepo.save(user.getUserInformation());
         }
+        log.info("pre save user with auith data");
         authDataRepo.save(user.getAuthdata());
         return userEntityRepo.save(user);
     }
@@ -115,6 +103,9 @@ public class UserServiceImpl implements UserService{
     @Override
     public UserEntity findUserByID(Long id) {
         log.info("finding UserEntity by id ...");
+        if (id == null) {
+            throw new AccountBadRequest("no ID");
+        }
         UserEntity user = userEntityRepo.findById(id).orElseThrow(() -> new AccountNotFound("with id: " + id));
         log.info("userEntity found: " + user);
         return user;
@@ -143,34 +134,63 @@ public class UserServiceImpl implements UserService{
     }
 
     @Override
-    public List<UserEntity> filter(FilterSearchRequest filterSearchRequest) {
-        String city = filterSearchRequest.getCity();
-        List<String> universities = filterSearchRequest.getUniversities();
-        List<SubjectType> subjects = fromIntToSubjectType(filterSearchRequest.getSubjects());
-        List<UserEntity> cityFilter = userEntityRepo.findAllByUserInformation_City(city);
-        List<UserEntity> universityFilter = new ArrayList<>();
-        for (UserEntity user : cityFilter) {
-            if(universities.contains(user.getUserInformation().getUniversity())) {
-                universityFilter.add(user);
-            }
-        }
-        List<UserEntity> subjectFilter = new ArrayList<>();
-        for (UserEntity userFiltered : universityFilter) {
+    public List<Long> filter(FilterSearchRequest filterSearchRequest) {
+        List<SubjectType> subjects = Utils.fromIntToSubjectType(filterSearchRequest.getSubjects());
+        List<UserEntity> allUsers = userEntityRepo.findAllByAuthdata_RoleEntity_Id(1);
+        List<Long> subjectFilter = new ArrayList<>();
+        for (UserEntity userFiltered : allUsers) {
             for (SubjectType subject: subjects) {
                 if(subjects.contains(subject)) {
-                    subjectFilter.add(userFiltered);
+                    subjectFilter.add(userFiltered.getId());
                     break;
                 }
             }
         }
-
         return subjectFilter;
+    }
+
+    @Override
+    public FindAllReturnIdWrap findAllReturnID() {
+        List<UserEntity> allUsers = userEntityRepo.findAllByAuthdata_RoleEntity_Id(1);
+        List<Long> allUsersReturnID = new ArrayList<>();
+        for (UserEntity user: allUsers) {
+            allUsersReturnID.add(user.getId());
+        }
+        return new FindAllReturnIdWrap(allUsersReturnID);
+    }
+    @Override
+    public List<UserEntity> findAllMentors(){
+        log.info("getting all mentors");
+        return userEntityRepo.findAllByAuthdata_RoleEntity_Id(1);
+    }
+    @Override
+    public Integer findRoleEntity(HttpServletRequest httpServletRequest) {
+        log.info("getting role id ...");
+        String email = getEmailFromToken(httpServletRequest);
+        UserEntity userEntity = findByAuthDataEmail(email);
+        log.info("role id was found");
+        return userEntity.getAuthdata().getRoleEntity().getId();
+
+    }
+
+    @Override
+    public FindUserByIDWrap findUserByIDInWrap(Long id) {
+        log.info("finding user by id and creating FindUserByIDWrap ... ");
+        UserEntity userEntity= findUserByID(id);
+        List<Integer> subjectList = Utils.fromSubjectTypeToInteger(userEntity.getSubjectTypeList());
+        FindUserByIDWrap findUserByIDWrap = FindUserByIDWrap.builder()
+                .fullName(userEntity.getFullName())
+                .university(userEntity.getUserInformation().getUniversity())
+                .subjectList(subjectList)
+                .build();
+        log.info("wrap was prepared");
+        return findUserByIDWrap;
     }
 
     @Override
     public List<UserEntity> findAdmins() {
         log.info("getting all admins");
-        return userEntityRepo.findAllByAuthdata_RoleEntity_Id(0L);
+        return userEntityRepo.findAllByAuthdata_RoleEntity_Id(0);
 
     }
 
@@ -196,38 +216,5 @@ public class UserServiceImpl implements UserService{
         } else {
             throw new AuthenticationFailed("token is null");
         }
-    }
-
-    private List<SubjectType> fromIntToSubjectType(List<Integer> subjects) {
-        List<SubjectType> subjectList = new ArrayList<>();
-        for (int digit: subjects) {
-            switch (digit) {
-                case 0: {
-                    subjectList.add(SubjectType.MATH);
-                    break;
-                }
-                case 1: {
-                    subjectList.add(SubjectType.PHYSICS);
-                    break;
-                }
-                case 2: {
-                    subjectList.add(SubjectType.CHEMISTRY);
-                    break;
-                }
-                case 3: {
-                    subjectList.add(SubjectType.BIOLOGY);
-                    break;
-                }
-                case 4: {
-                    subjectList.add(SubjectType.INFORMATICS);
-                    break;
-                }
-                case 5: {
-                    subjectList.add(SubjectType.HISTORY);
-                    break;
-                }
-            }
-        }
-        return subjectList;
     }
 }

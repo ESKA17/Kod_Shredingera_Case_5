@@ -22,6 +22,7 @@ public class UserInformation {
     private String city;
     @Column(name = "school" )
     private String school;
+
     @Column(name = "IIN")
     private String IIN;
     @Column(name = "phone_number")
@@ -33,14 +34,15 @@ public class UserInformation {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+    @Column(name = "about_me")
+    private String aboutMe;
+
     @Override
     public String toString() {
         return "UserInformation{" +
                 "id=" + id +
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", city='" + city + '\'' +
-                ", school='" + school + '\'' +
-                ", university='" + university + '\'' +
                 ", dateOfBirth=" + dateOfBirth +
                 ", IIN=" + IIN +
                 '}';

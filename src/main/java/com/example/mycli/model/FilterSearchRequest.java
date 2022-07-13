@@ -11,6 +11,4 @@ import java.util.List;
 @Setter
 public class FilterSearchRequest {
     private List<Integer> subjects;
-    private List<String> universities;
-    private String city;
 }

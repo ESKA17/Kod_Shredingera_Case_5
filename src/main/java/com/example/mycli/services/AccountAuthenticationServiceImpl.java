@@ -1,6 +1,7 @@
 package com.example.mycli.services;
 
 import com.example.mycli.entity.UserEntity;
+import com.example.mycli.exceptions.AccountBadRequest;
 import com.example.mycli.web.JwtProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
@@ -19,6 +20,9 @@ public class AccountAuthenticationServiceImpl implements AccountAuthenticationSe
     public String authenticateAccount(String email, String password,
                                       HttpServletResponse httpServletResponse) {
         log.info("account authentication ...");
+        if (email.isEmpty() || password.isEmpty()) {
+            throw new AccountBadRequest("check login/password");
+        }
         UserEntity userEntity = userService.findByLoginAndPassword(email, password);
         String token = null;
         if (userEntity != null) {
