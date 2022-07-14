@@ -27,7 +27,7 @@ public class AuthData {
         private Boolean firstTime;
 
         @ManyToOne
-        @JoinColumn(name="role_table", referencedColumnName = "id", nullable = false)
+        @JoinColumn(name="role_table", nullable = false)
         private RoleEntity roleEntity;
 
 

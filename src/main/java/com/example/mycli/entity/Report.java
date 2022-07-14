@@ -15,18 +15,13 @@ import javax.persistence.*;
 public class Report {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "reports_en")
+    @SequenceGenerator(name = "reports_en", sequenceName = "reports_en", allocationSize = 1)
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "reporter", referencedColumnName = "id")
-    private UserEntity reporter;
-
-    @OneToOne
-    @JoinColumn(name = "harasser", referencedColumnName = "id")
-    private UserEntity harasser;
-
-
+    @JoinColumn(name = "connection")
+    private Connection connection;
 
     @Column(name = "reason")
     private String reason;

@@ -2,8 +2,10 @@ package com.example.mycli.controllers;
 
 import com.example.mycli.entity.UserInformation;
 import com.example.mycli.model.Majors;
+import com.example.mycli.model.UserInfoResponse;
 import com.example.mycli.services.UserInformationService;
 import com.example.mycli.model.ScreeningRequest;
+import com.example.mycli.services.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -22,6 +24,7 @@ import java.util.List;
 @CrossOrigin(origins = "http://localhost:3000")
 public class UserInformationFormController {
     private final UserInformationService userInformationService;
+    private final UserService userService;
     @PostMapping()
     public ResponseEntity<String> fillScreeningForm(@RequestBody @Valid ScreeningRequest screeningRequest,
                                             HttpServletRequest httpServletRequest) {
@@ -37,14 +40,29 @@ public class UserInformationFormController {
     }
 
     @GetMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-    public UserInformation getScreeningForm(HttpServletRequest httpServletRequest) {
+    public UserInfoResponse getScreeningForm(HttpServletRequest httpServletRequest) {
         return userInformationService.getUserInformationForm(httpServletRequest);
     }
 
+    @GetMapping("/majors")
+    public List<Integer> getMajors(HttpServletRequest httpServletRequest) {
+        return userInformationService.getMajors(httpServletRequest);
+    }
     @PostMapping("/name")
     public ResponseEntity<String> changeFullName(@RequestParam String fullName,
                                              HttpServletRequest httpServletRequest) {
         userInformationService.changeFullName(fullName, httpServletRequest);
         return ResponseEntity.ok("Name was successfully changed");
     }
+    @GetMapping("/name")
+    public ResponseEntity<String> getFullName(HttpServletRequest httpServletRequest) {
+        String fullName = userInformationService.getFullName(httpServletRequest);
+        return ResponseEntity.ok(fullName);
+    }
+    @GetMapping("/get_role")
+    public ResponseEntity<Integer> getRoleByName(HttpServletRequest httpServletRequest){
+        int roleID = userService.findRoleEntity(httpServletRequest);
+        return ResponseEntity.ok(roleID);
+    }
+
 }

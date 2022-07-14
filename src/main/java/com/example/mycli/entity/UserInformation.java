@@ -33,14 +33,15 @@ public class UserInformation {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+    @Column(name = "about_me")
+    private String aboutMe;
+
     @Override
     public String toString() {
         return "UserInformation{" +
                 "id=" + id +
                 ", phoneNumber='" + phoneNumber + '\'' +
                 ", city='" + city + '\'' +
-                ", school='" + school + '\'' +
-                ", university='" + university + '\'' +
                 ", dateOfBirth=" + dateOfBirth +
                 ", IIN=" + IIN +
                 '}';

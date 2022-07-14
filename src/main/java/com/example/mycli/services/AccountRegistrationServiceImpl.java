@@ -2,6 +2,7 @@ package com.example.mycli.services;
 
 import com.example.mycli.entity.AuthData;
 import com.example.mycli.entity.RoleEntity;
+import com.example.mycli.exceptions.AccountBadRequest;
 import com.example.mycli.exceptions.AccountConflict;
 import com.example.mycli.entity.UserEntity;
 import com.example.mycli.exceptions.AccountNotFound;
@@ -35,6 +36,9 @@ public class AccountRegistrationServiceImpl implements AccountRegistrationServic
     @Override
     public void registerAccount(String email, String password, String fullName, int role) {
         log.info("account registration started ...");
+        if (email.isEmpty() || password.isEmpty()) {
+            throw new AccountBadRequest("check login/password");
+        }
         UserEntity userEntityAuthData= userService.checkByAuthDataEmail(email);
         if (userEntityAuthData != null && userEntityAuthData.getAuthdata() != null) {
             throw new AccountConflict(email);
@@ -72,6 +76,9 @@ public class AccountRegistrationServiceImpl implements AccountRegistrationServic
     @Async
     public void twoStepVerificationEmail(String email, String siteURL)
             throws MessagingException, UnsupportedEncodingException {
+        if (email.isEmpty()) {
+            throw new AccountBadRequest("check email");
+        }
         UserEntity user = userService.findByEmail(email);
         log.info("sending email started ...");
         String toAddress = user.getAuthdata().getEmail();

@@ -18,11 +18,12 @@ import java.util.List;
 public class News {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "news_en")
+    @SequenceGenerator(name = "news_en", sequenceName = "news_en", allocationSize = 1)
     private Long id;
-    @OneToOne
-    @JoinColumn(name = "user", referencedColumnName = "id")
-    private UserEntity userEntity;
+
+    @Column(name = "user_id")
+    private Long userID;
 
     @Column(name = "news")
     private String news;

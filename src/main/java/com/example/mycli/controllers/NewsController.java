@@ -1,6 +1,7 @@
 package com.example.mycli.controllers;
 
 import com.example.mycli.entity.News;
+import com.example.mycli.model.JSONNewsWrap;
 import com.example.mycli.model.NewsRequest;
 import com.example.mycli.model.NewsResponse;
 import com.example.mycli.services.NewsService;
@@ -11,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -22,7 +24,8 @@ public class NewsController {
     private final NewsService newsService;
 
     @PostMapping()
-    public ResponseEntity<String> addNews(@RequestBody NewsRequest newsRequest, HttpServletRequest httpServletRequest){
+    public ResponseEntity<String> addNews(@RequestBody @Valid NewsRequest newsRequest,
+                                          HttpServletRequest httpServletRequest){
         newsService.addNews(newsRequest.getNews(), httpServletRequest);
         return ResponseEntity.ok("News were posted");
     }
@@ -30,6 +33,10 @@ public class NewsController {
     @GetMapping("/available")
     public List<Long> getAllUnacceptedNews(){
         return newsService.getAllUnacceptedNews();
+    }
+    @GetMapping("/availableJSON")
+    public List<JSONNewsWrap> getAllUnacceptedNewsInJSON(){
+        return newsService.getAllUnacceptedNewsJSON();
     }
 
     @GetMapping("/by_op_unaccepted")
@@ -43,7 +50,7 @@ public class NewsController {
     }
 
     @GetMapping(value = "/by_id", produces = MediaType.APPLICATION_JSON_VALUE)
-    public NewsResponse getNewsByID(Long id){
+    public NewsResponse getNewsByID(@RequestParam Long id){
         return newsService.getNewsResponseByID(id);
     }
 

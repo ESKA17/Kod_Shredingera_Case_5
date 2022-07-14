@@ -1,6 +1,7 @@
 package com.example.mycli.services;
 
 import com.example.mycli.entity.UserEntity;
+import com.example.mycli.exceptions.AccountBadRequest;
 import com.example.mycli.exceptions.AccountNotFound;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +19,9 @@ public class AccountDeactivationServiceImpl implements AccountDeactivationServic
     @Override
     public void deactivateAccount(String email) {
         log.info("deactivating account ...");
+        if (email.isEmpty()) {
+            throw new AccountBadRequest("check eamil");
+        }
         UserEntity userEntity = userService.findByAuthDataEmail(email);
         userEntity.setActive(false);
         userService.saveUser(userEntity);

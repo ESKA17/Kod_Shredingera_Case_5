@@ -12,7 +12,7 @@ import javax.persistence.*;
 public class RoleEntity {
     @Id
     @Column(name = "id", nullable = false)
-    private Long id;
+    private Integer id;
 
     @Column(name = "name", nullable = false)
     private String name;

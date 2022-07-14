@@ -2,12 +2,9 @@ package com.example.mycli;
 
 import com.example.mycli.repository.UserEntityRepo;
 import com.example.mycli.repository.UserInfoRepo;
-import com.example.mycli.services.AccountRegistrationService;
+import com.example.mycli.services.*;
 //import com.example.mycli.services.CreateAdminService;
-import com.example.mycli.services.CreateAdminService;
-import com.example.mycli.services.FilesStorageService;
 //import com.example.mycli.services.UserInformationService;
-import com.example.mycli.services.UserService;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeIn;
 import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
 import io.swagger.v3.oas.annotations.security.SecurityScheme;
@@ -26,7 +23,7 @@ public class MyCliApplication implements CommandLineRunner {
     @Resource
     FilesStorageService storageService;
     @Autowired
-    private final UserService userService;
+    private final TemplatesService templatesService;
     @Autowired
     private final CreateAdminService createAdminService;
 
@@ -35,7 +32,8 @@ public class MyCliApplication implements CommandLineRunner {
     }
     @Override
     public void run(String... arg0) {
-        userService.initRoles();
+        templatesService.initRoles();
         createAdminService.createAdmin();
+//        storageService.init();
     }
 }

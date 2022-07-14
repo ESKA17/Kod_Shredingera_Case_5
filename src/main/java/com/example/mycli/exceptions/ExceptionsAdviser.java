@@ -57,5 +57,11 @@ public class ExceptionsAdviser {
     String roleNotFound(RoleNotFound ex) {
         return ex.getMessage();
     }
+    @ResponseBody
+    @ExceptionHandler(ServerFail.class)
+    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR)
+    String serverFail(ServerFail ex) {
+        return ex.getMessage();
+    }
 
 }
